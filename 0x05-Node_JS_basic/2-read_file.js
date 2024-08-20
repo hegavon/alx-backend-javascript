@@ -2,54 +2,49 @@
 
 const fs = require('fs');
 
-/**
- * Reads a database of students from a CSV file and logs student counts.
- *
- * @param {string} path - The path to the CSV database file.
- */
-function countStudents(path) {
+function countStudents(fileName) {
+  const students = {};
+  const fields = {};
+  let length = 0;
+
   try {
-    // Read the database file synchronously
-    const data = fs.readFileSync(path, 'utf8');
+    const fileContents = fs.readFileSync(fileName, 'utf-8');
+    const lines = fileContents.toString().split('\n');
 
-    // Split the data into lines, then filter out empty lines
-    const lines = data.split('\n').filter((line) => line.trim() !== '');
+    for (let i = 0; i < lines.length; i += 1) {
+      // Skip empty lines
+      if (lines[i]) {
+        length += 1;
+        const field = lines[i].toString().split(',');
 
-    // Get the number of students
-    const numStudents = lines.length;
-    console.log(`Number of students: ${numStudents}`);
+        // Add student name to the corresponding field
+        if (Object.prototype.hasOwnProperty.call(students, field[3])) {
+          students[field[3]].push(field[0]);
+        } else {
+          students[field[3]] = [field[0]];
+        }
 
-    // Create a map to store student counts per field
-    const fieldCounts = {};
-
-    // Iterate over each student (line) in the database
-    for (let i = 1; i < lines.length; i += 1) {
-      // Split each line into fields
-      const fields = lines[i].split(',');
-      // Extract the student's field of study
-      const field = fields[fields.length - 1];
-
-      // If the field already exists in the map, increment the count
-      if (fieldCounts[field]) {
-        fieldCounts[field].count += 1;
-        fieldCounts[field].names.push(fields[0]);
-      } else {
-        // Otherwise, initialize the field with a count of 1 and the student's name
-        fieldCounts[field] = { count: 1, names: [fields[0]] };
+        // Count the number of students in each field
+        if (Object.prototype.hasOwnProperty.call(fields, field[3])) {
+          fields[field[3]] += 1;
+        } else {
+          fields[field[3]] = 1;
+        }
       }
     }
 
-    // Iterate over each field and log the student count and list of names
-    for (const field in fieldCounts) {
-      if (Object.prototype.hasOwnProperty.call(fieldCounts, field)) {
-        const { count } = fieldCounts[field];
-        const names = fieldCounts[field].names.join(', ');
-        console.log(`Number of students in ${field}: ${count}. List: ${names}`);
+    const l = length - 1; // Assuming the first line is a header
+    console.log(`Number of students: ${l}`);
+
+    // Iterate through each field and print the statistics
+    for (const [key, value] of Object.entries(fields)) {
+      // Skip if the key is 'field' (assuming it's from the header)
+      if (key !== 'field') {
+        console.log(`Number of students in ${key}: ${value}. List: ${students[key].join(', ')}`);
       }
     }
   } catch (error) {
-    // If there's an error reading the file, throw an error
-    throw new Error('Cannot load the database');
+    throw Error('Cannot load the database');
   }
 }
 
