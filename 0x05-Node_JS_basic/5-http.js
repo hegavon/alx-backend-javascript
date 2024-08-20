@@ -13,11 +13,11 @@ function countStudents(fileName) {
   return new Promise((resolve, reject) => {
     readFile(fileName, (err, data) => {
       if (err) {
-        reject(err);
+        reject(Error('Cannot load the database'));
       } else {
         let output = '';
         const lines = data.toString().split('\n');
-        for (let i = 0; i < lines.length; i += 1) {
+        for (let i = 1; i < lines.length; i += 1) {
           if (lines[i]) {
             length += 1;
             const field = lines[i].toString().split(',');
@@ -33,8 +33,7 @@ function countStudents(fileName) {
             }
           }
         }
-        const l = length - 1;
-        output += `Number of students: ${l}\n`;
+        output += `Number of students: ${length}\n`;
         for (const [key, value] of Object.entries(fields)) {
           if (key !== 'field') {
             output += `Number of students in ${key}: ${value}. `;
@@ -53,16 +52,17 @@ const app = http.createServer((request, response) => {
   if (request.url === '/') {
     response.write('Hello Holberton School!');
     response.end();
-  }
-  if (request.url === '/students') {
+  } else if (request.url === '/students') {
     response.write('This is the list of our students\n');
     countStudents(process.argv[2].toString()).then((output) => {
-      const outString = output.slice(0, -1);
-      response.end(outString);
-    }).catch(() => {
+      response.end(output);
+    }).catch((error) => {
       response.statusCode = 404;
-      response.end('Cannot load the database');
+      response.end(error.message);
     });
+  } else {
+    response.statusCode = 404;
+    response.end();
   }
 });
 
