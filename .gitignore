@@ -1,2 +1,5 @@
 node_modules/
-
+babel.config.js
+database.csv
+package-lock.json
+package.json
