@@ -13,11 +13,11 @@ function countStudents(fileName) {
   return new Promise((resolve, reject) => {
     readFile(fileName, (err, data) => {
       if (err) {
-        reject(Error('Cannot load the database'));
+        reject(Error('Cannot load the database')); // Reject with an Error object
       } else {
         let output = '';
         const lines = data.toString().split('\n');
-        for (let i = 1; i < lines.length; i += 1) {
+        for (let i = 1; i < lines.length; i += 1) { // Start from index 1 to skip header
           if (lines[i]) {
             length += 1;
             const field = lines[i].toString().split(',');
@@ -33,7 +33,7 @@ function countStudents(fileName) {
             }
           }
         }
-        output += `Number of students: ${length}\n`;
+        output += `Number of students: ${length}\n`; // Use actual length
         for (const [key, value] of Object.entries(fields)) {
           if (key !== 'field') {
             output += `Number of students in ${key}: ${value}. `;
@@ -50,17 +50,17 @@ app.get('/', (req, res) => {
   res.send('Hello Holberton School!');
 });
 
-app.get('/students', async (req, res) => {
+app.get('/students', async (req, res) => { // Use async/await
   try {
-    const data = await countStudents(process.argv[2].toString());
-    res.send(`This is the list of our students\n${data}`);
+    const output = await countStudents(process.argv[2].toString());
+    res.send(`This is the list of our students\n${output}`);
   } catch (error) {
     res.status(500).send('Cannot load the database');
   }
 });
 
 app.listen(port, () => {
-  console.log('Server running at http://localhost:1245/');
+  console.log('Server running at http://localhost:1245/'); // Add console log
 });
 
 module.exports = app;
