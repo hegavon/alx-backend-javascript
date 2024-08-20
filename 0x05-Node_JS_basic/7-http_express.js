@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const express = require('express');
+
 const { readFile } = require('fs');
 
 const app = express();
@@ -13,11 +14,11 @@ function countStudents(fileName) {
   return new Promise((resolve, reject) => {
     readFile(fileName, (err, data) => {
       if (err) {
-        reject(Error('Cannot load the database')); // Reject with an Error object
+        reject(err);
       } else {
         let output = '';
         const lines = data.toString().split('\n');
-        for (let i = 1; i < lines.length; i += 1) { // Start from index 1 to skip header
+        for (let i = 0; i < lines.length; i += 1) {
           if (lines[i]) {
             length += 1;
             const field = lines[i].toString().split(',');
@@ -33,7 +34,8 @@ function countStudents(fileName) {
             }
           }
         }
-        output += `Number of students: ${length}\n`; // Use actual length
+        const l = length - 1;
+        output += `Number of students: ${l}\n`;
         for (const [key, value] of Object.entries(fields)) {
           if (key !== 'field') {
             output += `Number of students in ${key}: ${value}. `;
@@ -46,21 +48,18 @@ function countStudents(fileName) {
   });
 }
 
-app.get('/', (req, res) => {
-  res.send('Hello Holberton School!');
+app.get('/', (request, response) => {
+  response.send('Hello Holberton School!');
 });
-
-app.get('/students', async (req, res) => { // Use async/await
-  try {
-    const output = await countStudents(process.argv[2].toString());
-    res.send(`This is the list of our students\n${output}`);
-  } catch (error) {
-    res.status(500).send('Cannot load the database');
-  }
+app.get('/students', (request, response) => {
+  countStudents(process.argv[2].toString()).then((output) => {
+    response.send(['This is the list of our students', output].join('\n'));
+  }).catch(() => {
+    response.send('This is the list of our students\nCannot load the database');
+  });
 });
 
 app.listen(port, () => {
-  console.log('Server running at http://localhost:1245/'); // Add console log
 });
 
 module.exports = app;
